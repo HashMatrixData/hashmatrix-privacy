@@ -33,6 +33,51 @@
 
 > 详见主仓 `docs/00-主仓初始化-spec.md`、`docs/architecture/05-多租户与控制平面.md`。
 
+## 双栈结构（各自独立可开发/编译/调试/运行）
+
+```
+privacy/
+├── engine-py/            # Python · SecretFlow 计算引擎（PSI/求交）；uv + pytest + FastAPI
+├── orchestrator-java/    # Java · Spring Boot 编排层；Maven；调用 engine-py
+├── node-mock/            # 节点互联 mock（本地联调用，纯标准库）
+├── contracts/            # 编排契约：openapi(live REST) + proto(forward gRPC)
+├── samples/              # 最小 PSI 样例（mock 双方）端到端跑通
+└── docker-compose.local.yml  # 一键起双栈 + 节点 mock
+```
+
+| 栈 | 目录 | 独立命令 |
+|---|---|---|
+| Python 引擎 | `engine-py/` | `cd engine-py && uv sync && uv run pytest` |
+| Java 编排 | `orchestrator-java/` | `cd orchestrator-java && ./mvnw package` |
+
+> 两栈各自可独立装依赖/构建/测试/运行，互不阻塞。详见各目录 README。
+
+## 一键本地运行 + 最小 PSI 样例
+
+```bash
+# 起双栈 + 节点 mock
+docker compose -f docker-compose.local.yml up --build
+
+# 起全套并跑通最小 PSI 样例（mock 双方），样例退出码即结果
+docker compose -f docker-compose.local.yml --profile sample up --build \
+  --abort-on-container-exit --exit-code-from psi-sample
+```
+
+样例流程：节点互联 mock → 编排层（带 `X-Tenant-Id`）→ 计算引擎 → 返回交集。
+
+## 多租户红线
+
+隐私计算按租户隔离；**跨租户联合计算须显式授权，默认不串**。
+编排层 `TenantContext`（来自主仓 `starter-tenant`）为第一道闸，引擎侧纵深防御；
+未授权的跨租户求交返回 `403 CROSS_TENANT_NOT_AUTHORIZED`。
+
+## Java 基座（io.hashmatrix 公共依赖）
+
+orchestrator-java 经 **Maven 坐标**引用主仓 libs-java：`<parent>` = `io.hashmatrix:hashmatrix-platform-parent:0.1.0`、
+`import` `hashmatrix-bom`、依赖 `hashmatrix-starter-tenant`（多租户上下文）+ `hashmatrix-starter-test`（统一测试栈）。
+公共制品发布在 **GitHub Packages**，构建需配置制品仓访问——见
+[`orchestrator-java/README.md`](./orchestrator-java/README.md#制品仓访问github-packages)。详见主仓 `docs/00-主仓初始化-spec.md` §3。
+
 ## 说明
 
 本仓库作为 `hashmatrix` 主仓的 git submodule，挂载于 `services/privacy`。架构背景见主仓 `docs/architecture/`。

@@ -1,0 +1,63 @@
+# 本地独立运行/调试：双栈 + 节点互联 mock，一键 up。
+#
+#   docker compose -f docker-compose.local.yml up --build           # 起三件套
+#   docker compose -f docker-compose.local.yml --profile sample up --build --abort-on-container-exit
+#                                                                    # 起三件套 + 跑最小 PSI 样例
+#
+# 脱敏占位 tenant-demo / example.com；无任何真实数据。
+name: hashmatrix-privacy-local
+
+services:
+  engine-py:
+    build: ./engine-py
+    image: hashmatrix-privacy/engine-py:local
+    environment:
+      PSI_BACKEND: mock
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz').status==200 else 1)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+
+  node-mock:
+    build: ./node-mock
+    image: hashmatrix-privacy/node-mock:local
+    environment:
+      NODE_TENANT: tenant-demo
+    ports:
+      - "9000:9000"
+
+  # 注意：orchestrator-java 运行镜像消费宿主预构建的 fat-jar，故 up --build 前需先
+  #   cd orchestrator-java && ./mvnw package   （需配好 GitHub Packages 制品仓访问，见其 README）
+  orchestrator-java:
+    build: ./orchestrator-java
+    image: hashmatrix-privacy/orchestrator-java:local
+    environment:
+      ENGINE_BASE_URL: http://engine-py:8000
+    ports:
+      - "8080:8080"
+    depends_on:
+      engine-py:
+        condition: service_healthy
+
+  # 最小 PSI 样例（mock 双方）。仅在 --profile sample 下运行；跑通后退出 0。
+  psi-sample:
+    image: python:3.11-slim
+    profiles: ["sample"]
+    volumes:
+      - ./samples:/samples:ro
+    environment:
+      ORCH_URL: http://orchestrator-java:8080
+      NODE_URL: http://node-mock:9000
+      TENANT: tenant-demo
+    command: ["python", "/samples/psi_smoke.py"]
+    depends_on:
+      orchestrator-java:
+        condition: service_healthy
+      engine-py:
+        condition: service_healthy
+      node-mock:
+        condition: service_healthy

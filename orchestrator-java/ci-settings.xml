@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CI / 制品仓解析用 Maven settings：声明 GitHub Packages 仓库 URL（解析 io.hashmatrix:* 父 POM/BOM/starter）
+  + 凭据 server。凭据从环境变量注入，仓内不落任何明文。
+  用法：./mvnw -s ci-settings.xml package  （需 env PACKAGES_ACTOR / PACKAGES_TOKEN）
+
+  注意：parent POM 解析必须靠「能被消费方直接看到的仓库」，故仓库 URL 须在 settings.xml（或 pom）声明，
+  仅靠 setup-java 写入的 <server> 凭据不足以让 Maven 找到仓库。仓库 id 必须与 server id 一致。
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <servers>
+    <server>
+      <id>github-hashmatrix</id>
+      <username>${env.PACKAGES_ACTOR}</username>
+      <password>${env.PACKAGES_TOKEN}</password>
+    </server>
+  </servers>
+
+  <profiles>
+    <profile>
+      <id>github-hashmatrix</id>
+      <repositories>
+        <repository>
+          <id>github-hashmatrix</id>
+          <url>https://maven.pkg.github.com/HashMatrixData/hashmatrix</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>github-hashmatrix</id>
+          <url>https://maven.pkg.github.com/HashMatrixData/hashmatrix</url>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+
+  <activeProfiles>
+    <activeProfile>github-hashmatrix</activeProfile>
+  </activeProfiles>
+</settings>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+      公共依赖经 Maven 坐标引用主仓 libs-java（io.hashmatrix），不依赖 submodule 路径：
+      <relativePath/> 留空 = 强制从制品仓解析 parent。故只 clone 本仓即可 mvn 构建，
+      前提是能访问制品仓（GitHub Packages，内网为镜像 Nexus）。配置见 README「制品仓访问」。
+    -->
+    <parent>
+        <groupId>io.hashmatrix</groupId>
+        <artifactId>hashmatrix-platform-parent</artifactId>
+        <version>0.1.0</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.hashmatrix.privacy</groupId>
+    <artifactId>privacy-orchestrator</artifactId>
+    <version>0.1.0</version>
+    <name>privacy-orchestrator</name>
+    <description>隐私计算编排层（Java/Spring Boot）—— 编排 engine-py 执行 PSI 等隐私计算</description>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- 开发框架版本唯一来源：import hashmatrix-bom（钉死 Spring Boot 家族 + 测试栈 + starter-*） -->
+            <dependency>
+                <groupId>io.hashmatrix</groupId>
+                <artifactId>hashmatrix-bom</artifactId>
+                <version>0.1.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- 版本均由 BOM 钉死，子仓不写版本号 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- 多租户上下文：X-Tenant-* 头 → TenantContextHolder（替代本仓旧 shim） -->
+        <dependency>
+            <groupId>io.hashmatrix</groupId>
+            <artifactId>hashmatrix-starter-tenant</artifactId>
+        </dependency>
+
+        <!-- 统一测试栈：JUnit5 + AssertJ + Mockito + Testcontainers + 脱敏 fixtures（MockTenants/MockData） -->
+        <dependency>
+            <groupId>io.hashmatrix</groupId>
+            <artifactId>hashmatrix-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 需可执行 fat-jar（docker java -jar）。platform-parent 非 spring-boot-parent，
+                 既不管插件版本、也不绑定 repackage 目标，故显式给版本 + 显式绑定 repackage。
+                 版本对齐 BOM 的 spring-boot.version=3.3.5。 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.3.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

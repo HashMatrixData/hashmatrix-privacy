@@ -11,5 +11,9 @@ dist/
 __pycache__/
 *.pyc
 .venv/
+.pytest_cache/
+*.egg-info/
 .env
 *.local
+
+# 保留入库：engine-py/uv.lock、orchestrator-java/mvnw + .mvn/wrapper（独立可构建所需）

@@ -1,0 +1,37 @@
+[project]
+name = "privacy-engine"
+version = "0.1.0"
+description = "隐私计算引擎（SecretFlow）—— PSI/安全求交 计算服务"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "pydantic>=2.6",
+]
+
+# 真实计算后端 SecretFlow 故意不在此声明：它仅发布 pre-release 且钉死不可达的 spu
+# dev 版本，纳入锁定会让 uv 解析失败、拖垮整个轻量 mock 链路。接入真实 PSI 时手动安装：
+#   uv pip install --prerelease=allow secretflow
+# 并实现 privacy_engine.psi.SecretFlowPsiEngine（详见 README）。
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "httpx>=0.27",
+]
+
+[project.scripts]
+privacy-engine = "privacy_engine.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/privacy_engine"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

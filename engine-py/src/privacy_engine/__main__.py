@@ -9,7 +9,7 @@ import uvicorn
 
 def main() -> None:
     host = os.getenv("ENGINE_HOST", "0.0.0.0")
-    port = int(os.getenv("ENGINE_PORT", "8000"))
+    port = int(os.getenv("ENGINE_PORT", "8087"))
     uvicorn.run("privacy_engine.app:app", host=host, port=port, log_level="info")
 
 

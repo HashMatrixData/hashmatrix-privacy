@@ -1,4 +1,4 @@
-"""FastAPI 应用 —— 实现 contracts/openapi/privacy-psi-v1.yaml。"""
+"""FastAPI 应用 —— 实现契约 privacy-psi-v1（主仓 contracts/openapi/privacy-psi-v1.yaml，单一事实源）。"""
 
 from __future__ import annotations
 

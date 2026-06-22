@@ -1,4 +1,4 @@
-"""请求/响应模型 —— 与 `contracts/openapi/privacy-psi-v1.yaml` 一一对应。
+"""请求/响应模型 —— 与契约 privacy-psi-v1（主仓 `contracts/openapi/privacy-psi-v1.yaml`）一一对应。
 
 对外 JSON 使用 camelCase（与契约一致），Python 内部用 snake_case。
 """

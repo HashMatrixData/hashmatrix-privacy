@@ -43,3 +43,28 @@
 隐私计算子模块：MPC、安全求交(PSI)、匿踪查询、节点互联、可视编排（Python+Java）。
 
 技术栈与具体选型**待独立讨论后逐步丰富**，当前为初始脚手架。
+
+## 📜 契约声明（ICD）
+
+> **单一事实源 = 主仓 `contracts/`**。本仓**不 vendor 副本**（已删除旧 `contracts/` 目录），按需直读
+> `../../contracts`；改契约先动主仓、再落实现，避免漂移。查契约/同步本块用 toolkit `/contracts` skill。
+
+**Producer（本仓提供）**
+- `privacy-orchestrator-v1`：编排层对外 REST 契约（客户端/网关 → orchestrator-java）
+  （主仓 `contracts/openapi/privacy-orchestrator-v1.yaml`；`POST /api/v1/psi/intersect`，
+  发起方租户取自 `X-Tenant-Id` 头、不在体内；经网关 `/api/privacy/*` 暴露）。
+- `privacy-psi-v1`：编排层 ↔ 引擎的内部计算契约（orchestrator-java → engine-py）
+  （主仓 `contracts/openapi/privacy-psi-v1.yaml`；`POST /v1/psi/run`、`/healthz`）。
+  前瞻流式 PSI 见 `contracts/proto/privacy/v1/psi.proto`（gRPC，后置）。
+
+**Consumer（本仓依赖）**
+- `tenant-context-headers-icd`（主仓 `contracts/icd/`）：消费方按 **`X-Tenant-Id`** 做数据/计算隔离路由；
+  `X-Tenant-Org` 仅信息展示、`X-Tenant-Subject` 预留须容忍其存在（tolerant reader）；
+  取不到租户上下文却访问租户隔离资源即编程/配置错误（不静默放行）。`starter-tenant` 默认 `required=false`
+  （信任边缘已强制：服务仅在网关之后可达）。
+
+**M1 工程约定**
+- 端口（env 可覆盖，默认对齐基线）：orch **8086**/管理 **9086**、engine **8087**、node-mock **8088**。
+- 镜像命名：`ghcr.io/hashmatrixdata/privacy-{orchestrator-java,engine}:<tag>`；
+  **子仓交付 image，主仓 `deploy/` owns charts**（D5）。
+  `privacy-node`（node-mock）**仅本地 compose 联调用，不经 CI 发布、不入集群 chart**。

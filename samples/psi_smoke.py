@@ -17,8 +17,8 @@ import sys
 import urllib.error
 import urllib.request
 
-ORCH_URL = os.getenv("ORCH_URL", "http://localhost:8080")
-NODE_URL = os.getenv("NODE_URL", "http://localhost:9000")
+ORCH_URL = os.getenv("ORCH_URL", "http://localhost:8086")
+NODE_URL = os.getenv("NODE_URL", "http://localhost:8088")
 TENANT = os.getenv("TENANT", "tenant-demo")
 
 # 本地参与方（脱敏）。与 node-mock 的 [bob, carol, dave] 交集应为 [bob, carol]。

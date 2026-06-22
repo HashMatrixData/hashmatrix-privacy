@@ -8,7 +8,7 @@ import org.springframework.web.client.RestClient;
 
 /**
  * 计算引擎 {@code engine-py} 的 REST 客户端。
- * 契约：{@code POST /v1/psi/run}（contracts/openapi/privacy-psi-v1.yaml）。
+ * 契约：{@code POST /v1/psi/run}（主仓 contracts/openapi/privacy-psi-v1.yaml）。
  */
 @Component
 public class EngineClient {

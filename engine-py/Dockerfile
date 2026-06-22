@@ -7,7 +7,7 @@ COPY --from=ghcr.io/astral-sh/uv:0.5 /uv /uvx /bin/
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     ENGINE_HOST=0.0.0.0 \
-    ENGINE_PORT=8000
+    ENGINE_PORT=8087
 
 WORKDIR /app
 
@@ -17,10 +17,10 @@ COPY src ./src
 COPY README.md ./
 RUN uv sync --no-dev --frozen
 
-EXPOSE 8000
+EXPOSE 8087
 
 # 健康检查打到 /healthz
 HEALTHCHECK --interval=10s --timeout=3s --start-period=15s --retries=5 \
-    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz').status==200 else 1)"
+    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8087/healthz').status==200 else 1)"
 
 CMD ["uv", "run", "--no-dev", "privacy-engine"]

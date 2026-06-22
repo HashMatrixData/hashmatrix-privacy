@@ -10,13 +10,13 @@ name: hashmatrix-privacy-local
 services:
   engine-py:
     build: ./engine-py
-    image: hashmatrix-privacy/engine-py:local
+    image: ghcr.io/hashmatrixdata/privacy-engine:local
     environment:
       PSI_BACKEND: mock
     ports:
-      - "8000:8000"
+      - "8087:8087"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz').status==200 else 1)"]
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8087/healthz').status==200 else 1)"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -24,21 +24,22 @@ services:
 
   node-mock:
     build: ./node-mock
-    image: hashmatrix-privacy/node-mock:local
+    image: ghcr.io/hashmatrixdata/privacy-node:local
     environment:
       NODE_TENANT: tenant-demo
     ports:
-      - "9000:9000"
+      - "8088:8088"
 
   # 注意：orchestrator-java 运行镜像消费宿主预构建的 fat-jar，故 up --build 前需先
   #   cd orchestrator-java && ./mvnw package   （需配好 GitHub Packages 制品仓访问，见其 README）
   orchestrator-java:
     build: ./orchestrator-java
-    image: hashmatrix-privacy/orchestrator-java:local
+    image: ghcr.io/hashmatrixdata/privacy-orchestrator-java:local
     environment:
-      ENGINE_BASE_URL: http://engine-py:8000
+      ENGINE_BASE_URL: http://engine-py:8087
     ports:
-      - "8080:8080"
+      - "8086:8086"
+      - "9086:9086"
     depends_on:
       engine-py:
         condition: service_healthy
@@ -50,8 +51,8 @@ services:
     volumes:
       - ./samples:/samples:ro
     environment:
-      ORCH_URL: http://orchestrator-java:8080
-      NODE_URL: http://node-mock:9000
+      ORCH_URL: http://orchestrator-java:8086
+      NODE_URL: http://node-mock:8088
       TENANT: tenant-demo
     command: ["python", "/samples/psi_smoke.py"]
     depends_on:

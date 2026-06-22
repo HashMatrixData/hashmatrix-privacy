@@ -1,7 +1,7 @@
 # engine-py · 隐私计算引擎（SecretFlow）
 
 PSI/安全求交等隐私计算原语的计算服务，向编排层（`orchestrator-java`）暴露 REST API。
-契约见 [`../contracts/openapi/privacy-psi-v1.yaml`](../contracts/openapi/privacy-psi-v1.yaml)。
+契约 `privacy-psi-v1` 统一在主仓 `contracts/openapi/privacy-psi-v1.yaml`（单一事实源，本仓不留副本）。
 
 > **只进本目录即可装依赖、跑测试、起服务**，无需 clone 主仓或其他子目录。
 
@@ -11,7 +11,7 @@ PSI/安全求交等隐私计算原语的计算服务，向编排层（`orchestra
 cd engine-py
 uv sync                 # 安装依赖（含 dev：pytest/httpx）
 uv run pytest           # 跑单测
-uv run privacy-engine   # 起 REST 服务（默认 :8000）
+uv run privacy-engine   # 起 REST 服务（默认 :8087）
 ```
 
 ## PSI 后端
@@ -33,7 +33,7 @@ uv run privacy-engine   # 起 REST 服务（默认 :8000）
 ## 最小 PSI 样例
 
 ```bash
-curl -s localhost:8000/v1/psi/run -H 'content-type: application/json' -d '{
+curl -s localhost:8087/v1/psi/run -H 'content-type: application/json' -d '{
   "jobId": "job-0001",
   "initiatorTenant": "tenant-demo",
   "parties": [

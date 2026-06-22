@@ -1,7 +1,7 @@
 # orchestrator-java · 隐私计算编排层（Spring Boot）
 
 接收编排请求 → 多租户边界守卫（跨租户须显式授权）→ 调用计算引擎 `engine-py` 执行 PSI。
-引擎契约见 [`../contracts/openapi/privacy-psi-v1.yaml`](../contracts/openapi/privacy-psi-v1.yaml)。
+引擎契约 `privacy-psi-v1` 统一在主仓 `contracts/openapi/privacy-psi-v1.yaml`（单一事实源，本仓不留副本）。
 
 > **只 clone 本仓即可 `mvn package`**——前提是能访问制品仓（见下「制品仓访问」）。
 
@@ -51,7 +51,7 @@
 ```bash
 cd orchestrator-java
 ./mvnw -q package           # 构建 + 测试（统一测试栈来自 starter-test）
-./mvnw spring-boot:run      # 起服务（默认 :8080；引擎地址 engine.base-url 默认 localhost:8000）
+./mvnw spring-boot:run      # 起服务（应用 :8086 / 管理 :9086；引擎地址 engine.base-url 默认 localhost:8087）
 ```
 
 > Docker：运行镜像消费宿主预构建的 fat-jar（避免容器内注入制品仓凭据），故先 `./mvnw package` 再 `docker build`。
@@ -65,7 +65,7 @@ cd orchestrator-java
 ## 最小 PSI 样例（经编排层）
 
 ```bash
-curl -s localhost:8080/api/v1/psi/intersect \
+curl -s localhost:8086/api/v1/psi/intersect \
   -H 'content-type: application/json' -H 'X-Tenant-Id: tenant-demo' -d '{
   "jobId": "job-0001",
   "parties": [

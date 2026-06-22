@@ -43,7 +43,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main() -> None:
     host = os.getenv("NODE_HOST", "0.0.0.0")
-    port = int(os.getenv("NODE_PORT", "9000"))
+    port = int(os.getenv("NODE_PORT", "8088"))
     ThreadingHTTPServer((host, port), Handler).serve_forever()
 
 

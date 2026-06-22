@@ -40,10 +40,12 @@ privacy/
 ├── engine-py/            # Python · SecretFlow 计算引擎（PSI/求交）；uv + pytest + FastAPI
 ├── orchestrator-java/    # Java · Spring Boot 编排层；Maven；调用 engine-py
 ├── node-mock/            # 节点互联 mock（本地联调用，纯标准库）
-├── contracts/            # 编排契约：openapi(live REST) + proto(forward gRPC)
 ├── samples/              # 最小 PSI 样例（mock 双方）端到端跑通
 └── docker-compose.local.yml  # 一键起双栈 + 节点 mock
 ```
+
+> **契约不 vendor**：编排/引擎契约（`privacy-psi-v1` openapi + `psi.proto`）统一登记在主仓
+> `contracts/`（单一事实源），本仓直读 `../../contracts`，不留本地副本以防漂移。见 `CLAUDE.md`「契约声明」。
 
 | 栈 | 目录 | 独立命令 |
 |---|---|---|

@@ -13,6 +13,20 @@ on:
   pull_request:
   workflow_dispatch:
 
+# 镜像发布到 ghcr 需 packages:write（仅 push main 时实际推送，见各 build 步骤的 push 条件）。
+permissions:
+  contents: read
+  packages: write
+
+# 镜像命名/标签策略（对齐主仓 deploy 约定）：
+#   ghcr.io/hashmatrixdata/privacy-{engine,orchestrator-java}
+#   移动 tag 0.1.0-SNAPSHOT（push main 覆盖，dev pullPolicy:Always 跟最新）
+#   不可变 tag 0.1.0-<sha>（pin / prod 回滚）
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/hashmatrixdata/privacy
+  MOVING_TAG: "0.1.0-SNAPSHOT"
+
 jobs:
   engine-py:
     name: engine-py · uv + pytest
@@ -30,8 +44,21 @@ jobs:
         run: uv sync
       - name: Test
         run: uv run pytest -q
-      - name: Build image
-        run: docker build -t hashmatrix-privacy/engine-py:ci .
+      - name: Log in to ghcr（仅 push main 推送）
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build（PR 仅构建校验 / push main 构建并推送）
+        uses: docker/build-push-action@v6
+        with:
+          context: engine-py
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-engine:${{ env.MOVING_TAG }}
+            ${{ env.IMAGE_PREFIX }}-engine:0.1.0-${{ github.sha }}
 
   orchestrator-java:
     name: orchestrator-java · mvn package
@@ -53,8 +80,21 @@ jobs:
           PACKAGES_ACTOR: ${{ github.actor }}
           PACKAGES_TOKEN: ${{ secrets.PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
         run: ./mvnw -s ci-settings.xml -B -ntp package
-      - name: Build runtime image（消费上一步 fat-jar）
-        run: docker build -t hashmatrix-privacy/orchestrator-java:ci .
+      - name: Log in to ghcr（仅 push main 推送）
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build runtime image（消费上一步 fat-jar；PR 仅校验 / push main 推送）
+        uses: docker/build-push-action@v6
+        with:
+          context: orchestrator-java
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-orchestrator-java:${{ env.MOVING_TAG }}
+            ${{ env.IMAGE_PREFIX }}-orchestrator-java:0.1.0-${{ github.sha }}
 
   psi-sample:
     name: psi-sample · docker-compose 端到端
